@@ -478,7 +478,68 @@ Customize the `allow` list based on detected tools and patterns (e.g., add `Bash
 
 ---
 
-## Phase 7 — Cross-Reference Verification
+## Phase 7 — MCP Server Discovery & Setup
+
+Before cross-referencing, search for and configure MCP (Model Context Protocol) servers that will give future Claude Code sessions access to authoritative documentation, package intelligence, and database tooling for THIS project's detected tech stack.
+
+### 7.1 — Microsoft Docs / Learn MCP
+
+Search the web for the latest **Microsoft Learn MCP server** (an MCP server that can search and fetch official Microsoft / .NET / Azure documentation). Configure it so Claude Code can query `learn.microsoft.com` content on demand.
+
+**Fallback**: If no stable, standalone MCP server is found, document the recommended approach (e.g., using `WebFetch` against `learn.microsoft.com`) in the `research` skill.
+
+### 7.2 — NuGet Package Intelligence MCP
+
+Search the web for an MCP server that provides **NuGet package version lookup, compatibility checking, or dependency resolution** (e.g., a server wrapping the NuGet API or the `artmann/package-registry-mcp` server which covers NPM, Cargo, PyPi, and NuGet).
+
+**Recommended candidates** (verify availability before configuring):
+| MCP Server | Source | Capabilities |
+|---|---|---|
+| `artmann/package-registry-mcp` | `npx -y package-registry-mcp` | Search and get up-to-date info about NuGet (+ NPM, Cargo, PyPi) packages |
+| `sammcj/mcp-package-version` | `npx -y mcp-package-version` | Suggest latest stable package versions when writing code |
+
+Pick the one that is currently available, actively maintained, and covers NuGet. Add its configuration to `.claude/settings.json` (or recommend it in `CLAUDE.md`).
+
+### 7.3 — Database MCP (Engine-Specific)
+
+**Only if `DB_ENGINE ≠ NONE`.** Search the web for the best MCP server matching the detected database engine(s). Prefer **official** or **top-rated / widely adopted** servers.
+
+Use the table below as a starting point — **verify each candidate is still available and actively maintained** before configuring:
+
+| Detected Engine | Recommended MCP Server | Source / Install | Notes |
+|---|---|---|---|
+| **SQL Server / Azure SQL** | `mbentham/SqlAugur` | `dotnet tool install -g SqlAugur` | C#-based, AST query validation, read-only safety, schema exploration, ER diagrams. Official-quality for .NET stacks. |
+| **SQL Server / Azure SQL** | `wenerme/wener-mssql-mcp` | `npx -y wener-mssql-mcp` | TypeScript, schema inspection and query capabilities. Lighter alternative. |
+| **PostgreSQL** | `crystaldba/postgres-mcp` | `uvx postgres-mcp` | All-in-one: performance analysis, tuning, health checks. Top-rated. |
+| **PostgreSQL** | `modelcontextprotocol/server-postgres` | `npx -y @modelcontextprotocol/server-postgres` | Official MCP reference server. Schema inspection + queries. |
+| **MySQL** | `designcomputer/mysql_mcp_server` | `uvx mysql_mcp_server` | Configurable access controls, schema inspection, security guidelines. |
+| **MySQL** | `benborla29/mcp-server-mysql` | `npx -y @benborla29/mcp-server-mysql` | Node.js-based, configurable access controls. |
+| **MariaDB** | `skysqlinc/skysql-mcp` | See repo | Official SkySQL/MariaDB cloud MCP. Text-to-SQL and DB-level AI agents. |
+| **SQLite** | `modelcontextprotocol/server-sqlite` | `uvx mcp-server-sqlite` | Official MCP reference server. Built-in analysis features. |
+| **SQLite** | `jparkerweb/mcp-sqlite` | `npx -y @jparkerweb/mcp-sqlite` | Comprehensive SQLite interaction. |
+| **Oracle Database** | `runekaagaard/mcp-alchemy` | `uvx mcp-alchemy` | Universal SQLAlchemy-based; supports Oracle, SQL Server, PostgreSQL, MySQL, MariaDB, SQLite, and more. |
+| **Snowflake** | `Snowflake-Labs/mcp` | See repo (`uvx snowflake-mcp-server`) | Official Snowflake-Labs server. Cortex Agents, structured & unstructured data, RBAC. |
+| **Multiple engines** | `TheRaLabs/legion-mcp` | `uvx legion-mcp` | Universal: PostgreSQL, MySQL, SQL Server, BigQuery, Oracle, SQLite, Redshift, CockroachDB. |
+
+**Selection rules**:
+1. If an **official** server exists for the detected engine (marked 🎖️ in MCP registries), prefer it.
+2. Otherwise, pick the **most starred / most maintained** community server.
+3. If multiple engines are detected, prefer a **universal** server (e.g., `legion-mcp`, `mcp-alchemy`) or configure one server per engine.
+4. **Always verify** the server is still actively maintained (check last commit date, open issues) before adding it.
+
+### 7.4 — Configuration
+
+For each selected MCP server:
+1. Add the server configuration to `.claude/settings.json` under a new `"mcpServers"` key (or the appropriate MCP configuration mechanism).
+2. Document the server in the `research` skill (`SKILL.md`) so future sessions know what external tools are available.
+3. Add any required connection strings or environment variable references (never hardcode credentials — use environment variables or secrets management).
+4. If a server requires authentication, document the setup steps in `CLAUDE.md` under a new **"MCP Servers"** section.
+
+**If no suitable MCP server is found** for a category, document this gap in the Output Summary and recommend manual setup or alternative approaches.
+
+---
+
+## Phase 8 — Cross-Reference Verification
 
 Before finishing, verify consistency across ALL generated files:
 
@@ -515,5 +576,6 @@ When complete, list:
 4. Total rule count and their names
 5. Whether frontend was detected (and what framework)
 6. Database engine(s) and data access approach detected
-7. Any gaps identified (missing tests, no CI/CD, etc.)
-8. Suggested next actions (e.g., "Use the `documentation-writer` subagent to generate a README")
+7. Needed MCP servers configured with their capabilities
+8. Any gaps or limitations discovered (e.g., no MCP server for the detected database, no official documentation available for a key technology, etc.)
+9. Suggested next actions (e.g., "Use the `documentation-writer` subagent to generate a README")

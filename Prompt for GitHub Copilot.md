@@ -405,7 +405,76 @@ The DocumentationWriter agent MUST include:
 
 ---
 
-## Phase 5 — Cross-Reference Verification
+## Phase 5 — MCP Server Discovery & Setup
+
+Before cross-referencing, search for and configure MCP (Model Context Protocol) servers that will give future AI Agent sessions access to authoritative documentation, package intelligence, and database tooling for THIS project's detected tech stack.
+
+### 5.1 — Microsoft Docs / Learn MCP
+
+Search the web for the latest **Microsoft Learn MCP server** (an MCP server that can search and fetch official Microsoft / .NET / Azure documentation). Configure it so the AI Agent can query `learn.microsoft.com` content on demand.
+
+**Recommended candidates** (verify availability before configuring):
+| MCP Server | Source | Capabilities |
+|---|---|---|
+| VS Code built-in Microsoft Docs MCP | Enabled via VS Code MCP settings | `microsoft_docs_search`, `microsoft_docs_fetch`, `microsoft_code_sample_search` — search and fetch official Microsoft Learn documentation |
+
+If the built-in server is not available, search for a standalone MCP server package that wraps the Microsoft Learn API.
+
+### 5.2 — NuGet Package Intelligence MCP
+
+Search the web for an MCP server that provides **NuGet package version lookup, compatibility checking, or dependency resolution** (e.g., a server wrapping the NuGet API).
+
+**Recommended candidates** (verify availability before configuring):
+| MCP Server | Source | Capabilities |
+|---|---|---|
+| VS Code built-in NuGet MCP | Enabled via VS Code MCP settings | `get-latest-package-version`, `get-nuget-solver`, `get-package-context`, `update-package-to-version` |
+| `artmann/package-registry-mcp` | `npx -y package-registry-mcp` | Search and get up-to-date info about NuGet (+ NPM, Cargo, PyPi) packages |
+| `sammcj/mcp-package-version` | `npx -y mcp-package-version` | Suggest latest stable package versions when writing code |
+
+Pick the one that is currently available, actively maintained, and covers NuGet. Add its configuration to `.vscode/mcp.json`.
+
+### 5.3 — Database MCP (Engine-Specific)
+
+**Only if `DB_ENGINE ≠ NONE`.** Search the web for the best MCP server matching the detected database engine(s). Prefer **official** or **top-rated / widely adopted** servers.
+
+Use the table below as a starting point — **verify each candidate is still available and actively maintained** before configuring:
+
+| Detected Engine | Recommended MCP Server | Source / Install | Notes |
+|---|---|---|---|
+| **SQL Server / Azure SQL** | VS Code built-in MSSQL MCP | Enabled via VS Code MCP settings | `mssql_connect`, `mssql_run_query`, `mssql_list_tables`, `mssql_list_databases`, etc. Official Microsoft. |
+| **SQL Server / Azure SQL** | `mbentham/SqlAugur` | `dotnet tool install -g SqlAugur` | C#-based, AST query validation, read-only safety, schema exploration, ER diagrams. |
+| **SQL Server / Azure SQL** | `wenerme/wener-mssql-mcp` | `npx -y wener-mssql-mcp` | TypeScript, schema inspection and query capabilities. |
+| **PostgreSQL** | `crystaldba/postgres-mcp` | `uvx postgres-mcp` | All-in-one: performance analysis, tuning, health checks. Top-rated. |
+| **PostgreSQL** | `modelcontextprotocol/server-postgres` | `npx -y @modelcontextprotocol/server-postgres` | Official MCP reference server. Schema inspection + queries. |
+| **MySQL** | `designcomputer/mysql_mcp_server` | `uvx mysql_mcp_server` | Configurable access controls, schema inspection, security guidelines. |
+| **MySQL** | `benborla29/mcp-server-mysql` | `npx -y @benborla29/mcp-server-mysql` | Node.js-based, configurable access controls. |
+| **MariaDB** | `skysqlinc/skysql-mcp` | See repo | Official SkySQL/MariaDB cloud MCP. Text-to-SQL and DB-level AI agents. |
+| **SQLite** | `modelcontextprotocol/server-sqlite` | `uvx mcp-server-sqlite` | Official MCP reference server. Built-in analysis features. |
+| **SQLite** | `jparkerweb/mcp-sqlite` | `npx -y @jparkerweb/mcp-sqlite` | Comprehensive SQLite interaction. |
+| **Oracle Database** | `runekaagaard/mcp-alchemy` | `uvx mcp-alchemy` | Universal SQLAlchemy-based; supports Oracle, SQL Server, PostgreSQL, MySQL, MariaDB, SQLite, and more. |
+| **Snowflake** | `Snowflake-Labs/mcp` | See repo (`uvx snowflake-mcp-server`) | Official Snowflake-Labs server. Cortex Agents, structured & unstructured data, RBAC. |
+| **Multiple engines** | `TheRaLabs/legion-mcp` | `uvx legion-mcp` | Universal: PostgreSQL, MySQL, SQL Server, BigQuery, Oracle, SQLite, Redshift, CockroachDB. |
+
+**Selection rules**:
+1. If a **VS Code built-in MCP** exists for the detected engine (e.g., MSSQL), prefer it — zero setup required.
+2. If an **official** server exists for the detected engine (marked 🎖️ in MCP registries), prefer it next.
+3. Otherwise, pick the **most starred / most maintained** community server.
+4. If multiple engines are detected, prefer a **universal** server (e.g., `legion-mcp`, `mcp-alchemy`) or configure one server per engine.
+5. **Always verify** the server is still actively maintained (check last commit date, open issues) before adding it.
+
+### 5.4 — Configuration
+
+For each selected MCP server:
+1. Add the server configuration to `.vscode/mcp.json` (for VS Code-native MCPs) or document the setup in `copilot-instructions.md`.
+2. Document the server in the `research.prompt.md` skill so future sessions know what external tools are available.
+3. Add any required connection strings or environment variable references (never hardcode credentials — use environment variables or secrets management).
+4. If a server requires authentication, document the setup steps in `copilot-instructions.md` under a new **"MCP Servers"** section.
+
+**If no suitable MCP server is found** for a category, document this gap in the Output Summary and recommend manual setup or alternative approaches.
+
+---
+
+## Phase 6 — Cross-Reference Verification
 
 Before finishing, verify consistency across ALL generated files:
 
@@ -438,5 +507,6 @@ When complete, list:
 3. Total skill count and their names
 4. Whether frontend was detected (and what framework)
 5. Database engine(s) and data access approach detected
-6. Any gaps identified (missing tests, no CI/CD, etc.)
-7. Suggested next actions (e.g., "Ask @DocumentationWriter to generate a README")
+6. Needed MCP servers configured with their capabilities
+7. Any gaps or limitations discovered (e.g., no MCP server for the detected database, no official documentation available for a key technology, etc.)
+8. Suggested next actions (e.g., "Ask @DocumentationWriter to generate a README")

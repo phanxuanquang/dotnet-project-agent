@@ -15,10 +15,11 @@ flowchart TD
         C["Phase 1: Generate knowledge base\n(concepts, glossary, conventions, architecture)"]
         D["Phase 2: Generate master instructions\n(.github/copilot-instructions.md or CLAUDE.md)"]
         E["Phase 3+: Generate skills, agents,\nrules, settings"]
+        E2["MCP Server Discovery & Setup\n(Docs, NuGet, Database)"]
         F["Final: Cross-reference verification"]
     end
 
-    A --> B --> C --> D --> E --> F
+    A --> B --> C --> D --> E --> E2 --> F
 ```
 
 1. **Send** `Prompt.md` (from `For GitHub Copilot/` or `For Claude Code/`) to the AI agent
