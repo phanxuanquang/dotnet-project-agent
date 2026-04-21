@@ -1,6 +1,4 @@
-# Bootstrap GitHub Copilot Agents for a .NET Codebase
-
-You are tasked with generating a complete `.github/` directory that enables any AI agent to maintain this codebase without exploring it from scratch. The output must be tailored to THIS specific repository — not generic.
+The mission for you now is to generating a complete `.github/` directory that enables GitHub Copilot to maintain this codebase without exploring it from scratch. The output must be tailored to *THIS specific repository*, not any other generic codebases.
 
 **Tech stack assumption**: C#, .NET (detect the actual version from `.csproj` files). The database engine, ORM/data access approach, and frontend presence will be **auto-detected** — do not assume any specific database or framework.
 
@@ -126,8 +124,10 @@ Create the master system instructions file. This is the most important file — 
 ```markdown
 # {Project Name} — AI Agent System Instructions
 
-## OODA Decision-Making Loop
+## Overview
+{Overview or intial introduction about this repository for the AI Agent to have a basic understanding}
 
+## OODA Decision-Making Loop
 {Copy this section exactly — it's methodology, not project-specific}
 
 **Every task MUST follow the OODA loop.**
